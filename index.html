@@ -127,10 +127,10 @@
   }
 
   p, li {
-    font-size: clamp(1.14rem, 1.8vw, 1.44rem);
-    line-height: 1.65;
+    font-size: clamp(.9rem, 1.8vw, 1.44rem);
+    /* line-height: 1.65; */
     color: var(--fg);
-    max-width: 60ch;
+    max-width: 90ch;
   }
 
   .slide.centered .subtitle,
@@ -525,7 +525,7 @@
 
   <!-- ════════ SLIDE 2 — The Problem ════════ -->
   <div class="slide" data-slide="1">
-    <div class="split-img">
+    <!-- <div class="split-img"> -->
       <div>
         <div class="label">The Problem</div>
         <h2>AI agents are powerful.<br><em>Managing</em> them is hard.</h2>
@@ -541,10 +541,7 @@
           overflow recovery, verification loops, and real-time observability.
         </p>
       </div>
-      <div class="screenshot-glow">
-        <img src="assets/barf_preview.png" alt="barf dashboard overview" class="screenshot">
-      </div>
-    </div>
+    <!-- </div> -->
   </div>
 
   <!-- ════════ SLIDE 3 — The Ralph Wiggum Loop ════════ -->
@@ -571,7 +568,7 @@
         </p>
 
         <div style="display: flex; align-items: center; gap: 1rem; margin-top: 1rem;">
-          <img src="assets/Ralph_Wiggum.png" alt="Ralph Wiggum" style="height: 6rem; border-radius: 8px; flex-shrink: 0;">
+          <img src="assets/Ralph_Wiggum.png" alt="Ralph Wiggum" style="height: 6rem; border-radius: 8px; shrink: 0;">
           <p style="color: var(--dim); font-style: italic; font-size: clamp(0.9rem, 1.2vw, 1.05rem);">
             "I'm helping!" — Ralph runs in a loop, doing one thing at a time, never getting overwhelmed.
           </p>
@@ -792,8 +789,74 @@
     </div>
   </div>
 
-  <!-- ════════ SLIDE 8 — Auto vs Manual ════════ -->
+  <!-- ════════ SLIDE 8 — Harness Engineering ════════ -->
   <div class="slide" data-slide="7">
+    <div class="split">
+      <div>
+        <div class="label">Industry Validation</div>
+        <h2><em>Harness</em> engineering</h2>
+
+        <p style="color: var(--dim); margin-top: 0.6rem;">
+          In early 2026, OpenAI's Codex team coined <strong style="color: var(--fg);">harness engineering</strong> — the discipline of designing constraints, feedback loops, and environments that make AI agents reliable.
+        </p>
+
+        <p style="color: var(--dim); margin-top: 0.6rem;">
+          The metaphor: the model is the <strong style="color: var(--fg);">horse</strong> (powerful but directionless), the harness provides <strong style="color: var(--fg);">structure</strong>, and the human is the <strong style="color: var(--fg);">rider</strong>.
+        </p>
+
+        <h3 style="margin-top: 1rem;">Four principles</h3>
+        <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem;">
+          <div class="arch-layer" style="--accent: var(--cyan);">
+            <div class="layer-name">Constrain</div>
+            <div class="layer-desc">Architectural boundaries and dependency rules narrow the solution space</div>
+          </div>
+          <div class="arch-layer" style="--accent: var(--accent);">commit
+            <div class="layer-name">Inform</div>
+            <div class="layer-desc">Context engineering — the repo is the single source of truth for agents</div>
+          </div>
+          <div class="arch-layer" style="--accent: var(--green);">
+            <div class="layer-name">Verify</div>
+            <div class="layer-desc">Testing, linting, and CI validate every output</div>
+          </div>
+          <div class="arch-layer" style="--accent: var(--orange);">
+            <div class="layer-name">Correct</div>
+            <div class="layer-desc">Feedback loops and self-repair mechanisms fix what's broken</div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <h3 style="color: var(--purple); margin-bottom: 0.8rem;">barf was doing this first</h3>
+        <p style="color: var(--dim); margin-bottom: 0.8rem; font-size: clamp(0.9rem, 1.2vw, 1.05rem);">
+          barf implemented every harness principle before the term existed:
+        </p>
+        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+          <div class="arch-layer" style="--accent: var(--cyan);">
+            <div class="layer-name">Constrain → State machine</div>
+            <div class="layer-desc">Validated transitions prevent invalid moves. Scoped phase prompts limit each stage to only what it needs. SDK isolation via <code>settingSources: []</code>.</div>
+          </div>
+          <div class="arch-layer" style="--accent: var(--accent);">
+            <div class="layer-name">Inform → Prompt templates</div>
+            <div class="layer-desc">Variable injection feeds issue context, acceptance criteria, and plan content into each prompt. The issue file is the single source of truth.</div>
+          </div>
+          <div class="arch-layer" style="--accent: var(--green);">
+            <div class="layer-name">Verify → Build + lint + test</div>
+            <div class="layer-desc">Automated verification checks every build. Cross-model audit catches blind spots the builder misses.</div>
+          </div>
+          <div class="arch-layer" style="--accent: var(--orange);">
+            <div class="layer-name">Correct → Self-healing loops</div>
+            <div class="layer-desc">Fix sub-issues auto-created on failure. Overflow triggers auto-split. Model escalation as final fallback.</div>
+          </div>
+        </div>
+        <p style="color: var(--dim); margin-top: 0.8rem; font-style: italic; font-size: clamp(0.84rem, 1.1vw, 0.96rem);">
+          "The model is commodity. The harness is moat."<br>
+          <span style="color: var(--dim);">— OpenAI Codex team, Feb 2026</span>
+        </p>commit
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════ SLIDE 9 — Auto vs Manual ════════ -->
+  <div class="slide" data-slide="8">
     <div class="split">
       <div>
         <div class="label">Two Modes</div>
@@ -845,8 +908,8 @@
     </div>
   </div>
 
-  <!-- ════════ SLIDE 9 — Dashboard ════════ -->
-  <div class="slide" data-slide="8">
+  <!-- ════════ SLIDE 10 — Dashboard ════════ -->
+  <div class="slide" data-slide="9">
     <div class="split-img" style="grid-template-columns: 1fr 1.1fr;">
       <div>
         <div class="label">The Dashboard</div>
@@ -867,8 +930,8 @@
     </div>
   </div>
 
-  <!-- ════════ SLIDE 10 — Getting Started ════════ -->
-  <div class="slide" data-slide="9">
+  <!-- ════════ SLIDE 11 — Getting Started ════════ -->
+  <div class="slide" data-slide="10">
     <div class="split-img">
       <div>
         <div class="label">Get Started</div>
@@ -904,7 +967,7 @@
 
 <!-- Progress + nav -->
 <div class="progress" id="progress"></div>
-<div class="slide-num" id="slideNum">1 / 10</div>
+<div class="slide-num" id="slideNum">1 / 11</div>
 <div class="nav-hint">← → or click to navigate</div>
 
 <script>
