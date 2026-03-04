@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>barf — AI Issue Orchestration</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* Tokyo Night palette */
+    --bg: #1a1b26;
+    --bg-highlight: #24283b;
+    --fg: #e0e4fc;
+    --dim: #787ea0;
+    --accent: #7aa2f7;
+    --accent-glow: #7aa2f740;
+    --purple: #bb9af7;
+    --cyan: #7dcfff;
+    --green: #9ece6a;
+    --orange: #ff9e64;
+    --red: #f7768e;
+    /* Stage colors — match dashboard CMD_CLASS / palette-state */
+    --stage-triage: #7aa2f7;    /* groomed blue */
+    --stage-plan: #bb9af7;      /* planned purple */
+    --stage-build: #9ece6a;     /* built green */
+    --stage-verify: #73daca;    /* complete teal */
+    --stage-audit: #73daca;     /* complete teal */
+    /* State colors */
+    --state-new: #565f89;
+    --state-groomed: #7aa2f7;
+    --state-planned: #bb9af7;
+    --state-built: #9ece6a;
+    --state-complete: #73daca;
+    --state-stuck: #f7768e;
+    --state-split: #c678dd;
+    --mono: 'Space Mono', monospace;
+    --serif: 'Instrument Serif', Georgia, serif;
+    --pad: clamp(2rem, 5vw, 6rem);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--mono);
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .deck { position: relative; width: 100vw; height: 100vh; }
+
+  .slide {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: var(--pad);
+    padding-bottom: 3rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s ease, transform 0.5s ease;
+    transform: translateY(12px);
+    overflow: hidden;
+  }
+
+  .slide.active {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+  }
+
+  .slide.centered {
+    align-items: center;
+    text-align: center;
+  }
+
+  /* ── Typography — all sizes +20% ── */
+  h1 {
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: clamp(4.8rem, 14.4vw, 12rem);
+    line-height: 0.92;
+    letter-spacing: -0.03em;
+    color: var(--fg);
+  }
+
+  h1 em { font-style: italic; color: var(--purple); }
+
+  h2 {
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: clamp(2.6rem, 6vw, 5.4rem);
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+    margin-bottom: 1.2rem;
+  }
+
+  h2 em { font-style: italic; color: var(--purple); }
+
+  h3 {
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: clamp(1.7rem, 3vw, 2.4rem);
+    line-height: 1.15;
+    margin-bottom: 0.6rem;
+    color: var(--fg);
+  }
+
+  .subtitle {
+    font-size: clamp(1.2rem, 2.2vw, 1.55rem);
+    color: var(--dim);
+    margin-top: 1.5rem;
+    max-width: 50ch;
+    line-height: 1.6;
+  }
+
+  .label {
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--cyan);
+    margin-bottom: 0.6rem;
+  }
+
+  p, li {
+    font-size: clamp(1.14rem, 1.8vw, 1.44rem);
+    line-height: 1.65;
+    color: var(--fg);
+    max-width: 60ch;
+  }
+
+  .slide.centered .subtitle,
+  .slide.centered p { max-width: 50ch; }
+
+  ul { list-style: none; padding: 0; }
+
+  ul li {
+    position: relative;
+    padding-left: 1.5em;
+    margin-bottom: 0.55em;
+  }
+
+  ul li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: var(--cyan);
+  }
+
+  code {
+    font-family: var(--mono);
+    font-size: 0.88em;
+    background: var(--bg-highlight);
+    padding: 0.15em 0.45em;
+    border-radius: 3px;
+    border: 1px solid #565f8930;
+    color: var(--green);
+  }
+
+  strong { color: var(--fg); font-weight: 700; }
+
+  /* ── Layouts ── */
+  .split {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: clamp(2rem, 5vw, 6rem);
+    align-items: center;
+    width: 100%;
+  }
+
+  .split-img {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: clamp(2rem, 4vw, 5rem);
+    align-items: center;
+    width: 100%;
+  }
+
+  /* ── Screenshots ── */
+  .screenshot {
+    width: 100%;
+    max-height: 70vh;
+    object-fit: contain;
+    border-radius: 8px;
+    border: 1px solid #565f8940;
+    box-shadow: 0 8px 40px #00000080, 0 0 0 1px #565f8920;
+  }
+
+  .screenshot-glow {
+    position: relative;
+  }
+
+  .screenshot-glow::after {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: 9px;
+    background: linear-gradient(135deg, var(--accent-glow), transparent 60%);
+    z-index: -1;
+    filter: blur(20px);
+    opacity: 0.4;
+  }
+
+  .mascot {
+    max-height: 55vh;
+    object-fit: contain;
+    border-radius: 12px;
+    filter: drop-shadow(0 8px 30px #7aa2f730);
+  }
+
+  /* ── State chips ── */
+  .state-flow {
+    display: flex;
+    gap: 0.6rem;
+    align-items: center;
+    flex-wrap: wrap;
+    margin: 1.2rem 0;
+  }
+
+  .state-chip {
+    padding: 0.55em 1.1em;
+    border: 1px solid var(--dim);
+    border-radius: 4px;
+    font-size: clamp(0.96rem, 1.44vw, 1.14rem);
+    font-family: var(--mono);
+    background: var(--bg-highlight);
+    white-space: nowrap;
+    color: var(--fg);
+  }
+
+  .state-chip.terminal { border-color: var(--green); color: var(--green); }
+  .state-chip.active-chip { border-color: var(--cyan); color: var(--cyan); }
+  .state-arrow { color: var(--dim); font-size: 1.3rem; }
+
+  /* ── Architecture layers ── */
+  .arch-layers {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    width: 100%;
+  }
+
+  .arch-layer {
+    border: 1px solid #565f8930;
+    border-radius: 6px;
+    padding: 1em 1.3em;
+    background: var(--bg-highlight);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .arch-layer::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--accent);
+    opacity: 0.8;
+  }
+
+  .arch-layer .layer-name {
+    font-size: 0.84rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--cyan);
+    margin-bottom: 0.25em;
+  }
+
+  .arch-layer .layer-desc {
+    font-size: clamp(0.96rem, 1.44vw, 1.14rem);
+    color: var(--dim);
+    line-height: 1.45;
+  }
+
+  /* ── Pipeline steps ── */
+  .pipeline {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    width: 100%;
+  }
+
+  .pipe-step {
+    display: grid;
+    grid-template-columns: 2.2rem 1fr;
+    gap: 0.8rem;
+    align-items: baseline;
+    border-left: 2px solid #565f8940;
+    padding: 0.5em 0 0.5em 1em;
+    position: relative;
+  }
+
+  .pipe-step::before {
+    content: '';
+    position: absolute;
+    left: -5px;
+    top: 0.75em;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--step-color, var(--cyan));
+  }
+
+  .pipe-step:last-child { border-left-color: transparent; }
+
+  .pipe-step .pipe-num {
+    font-size: 0.84rem;
+    color: var(--step-color, var(--cyan));
+    font-family: var(--mono);
+    letter-spacing: 0.05em;
+    font-weight: 700;
+  }
+
+  .pipe-step .pipe-detail {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15em;
+  }
+
+  .pipe-step .pipe-name {
+    font-family: var(--serif);
+    font-size: clamp(1.32rem, 2.1vw, 1.7rem);
+    color: var(--fg);
+    line-height: 1.1;
+  }
+
+  .pipe-step .pipe-desc {
+    font-size: clamp(0.9rem, 1.2vw, 1.08rem);
+    color: var(--dim);
+    line-height: 1.5;
+  }
+
+  /* ── Provider logos ── */
+  .provider-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-top: 1.5rem;
+    width: 100%;
+    max-width: 800px;
+  }
+
+  .provider-card {
+    border: 1px solid #565f8930;
+    border-radius: 8px;
+    padding: 1.5em 1em;
+    background: var(--bg-highlight);
+    text-align: center;
+    transition: border-color 0.3s ease, background 0.3s ease;
+  }
+
+  .provider-card:hover {
+    border-color: var(--purple);
+    background: #bb9af720;
+  }
+
+  .provider-card .provider-icon {
+    font-size: 2.4rem;
+    margin-bottom: 0.5em;
+    display: block;
+  }
+
+  .provider-card .provider-name {
+    font-family: var(--serif);
+    font-size: clamp(1.2rem, 1.9vw, 1.5rem);
+    margin-bottom: 0.3em;
+    color: var(--fg);
+  }
+
+  .provider-card .provider-model {
+    font-size: clamp(0.78rem, 1.08vw, 0.94rem);
+    color: var(--dim);
+    font-family: var(--mono);
+  }
+
+  /* ── Overflow diagram ── */
+  .overflow-flow {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    margin: 1.5rem 0;
+    flex-wrap: wrap;
+  }
+
+  .overflow-box {
+    border: 1px solid #565f8930;
+    border-radius: 6px;
+    padding: 0.8em 1.2em;
+    background: var(--bg-highlight);
+    flex: 1;
+    min-width: 200px;
+  }
+
+  .overflow-box h4 {
+    font-family: var(--serif);
+    font-size: clamp(1.2rem, 1.7vw, 1.44rem);
+    font-weight: 400;
+    margin-bottom: 0.4em;
+    color: var(--fg);
+  }
+
+  .overflow-box p {
+    font-size: clamp(0.9rem, 1.2vw, 1.06rem);
+    color: var(--dim);
+    line-height: 1.5;
+    max-width: none;
+  }
+
+  .overflow-box.highlight {
+    border-color: var(--green);
+    background: #9ece6a18;
+  }
+
+  /* ── Feature grid ── */
+  .feature-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: clamp(0.7rem, 1.5vw, 1.2rem);
+    margin-top: 1.5rem;
+    width: 100%;
+    max-width: 1000px;
+  }
+
+  .feature-card {
+    border: 1px solid #565f8930;
+    border-radius: 6px;
+    padding: 1.3em;
+    background: var(--bg-highlight);
+    transition: border-color 0.3s ease, background 0.3s ease;
+  }
+
+  .feature-card:hover {
+    border-color: var(--accent);
+    background: var(--accent-glow);
+  }
+
+  .feature-card h3 {
+    font-family: var(--serif);
+    font-size: clamp(1.32rem, 2.16vw, 1.68rem);
+    font-weight: 400;
+    margin-bottom: 0.35em;
+    color: var(--fg);
+  }
+
+  .feature-card p {
+    font-size: clamp(0.9rem, 1.32vw, 1.08rem);
+    color: var(--dim);
+    line-height: 1.5;
+    max-width: none;
+  }
+
+  /* ── Progress + nav ── */
+  .progress {
+    position: fixed;
+    bottom: 0; left: 0;
+    height: 2px;
+    background: var(--accent);
+    transition: width 0.4s ease;
+    z-index: 100;
+  }
+
+  .slide-num {
+    position: fixed;
+    bottom: 1rem;
+    right: var(--pad);
+    font-size: 0.84rem;
+    color: var(--dim);
+    z-index: 100;
+    font-family: var(--mono);
+  }
+
+  .nav-hint {
+    position: fixed;
+    bottom: 1rem;
+    left: var(--pad);
+    font-size: 0.78rem;
+    color: #565f8940;
+    z-index: 100;
+  }
+
+  .deck::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.02'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 99;
+  }
+
+  @media (max-width: 768px) {
+    .split, .split-img { grid-template-columns: 1fr; }
+    .feature-grid { grid-template-columns: repeat(2, 1fr); }
+    .pipeline { gap: 0.4rem; }
+    .provider-grid { grid-template-columns: repeat(2, 1fr); }
+    .mascot { max-height: 30vh; }
+  }
+</style>
+</head>
+<body>
+
+<div class="deck">
+
+  <!-- ════════ SLIDE 1 — Title ════════ -->
+  <div class="slide active" data-slide="0">
+    <div class="split-img">
+      <div>
+        <div class="label">Introducing</div>
+        <h1><em>barf</em></h1>
+        <h1 style="font-size: clamp(2rem, 5vw, 4rem); margin-top: 0.2em;">
+          AI Issue Orchestration
+        </h1>
+        <p class="subtitle">
+          An autonomous system that manages Claude AI agents to plan, build, and verify software — issue by issue, from triage to completion.
+        </p>
+      </div>
+      <div style="display: flex; justify-content: center;">
+        <img src="assets/barf.png" alt="barf mascot" class="mascot">
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════ SLIDE 2 — The Problem ════════ -->
+  <div class="slide" data-slide="1">
+    <div class="split-img">
+      <div>
+        <div class="label">The Problem</div>
+        <h2>AI agents are powerful.<br><em>Managing</em> them is hard.</h2>
+        <ul style="margin-top: 1.2rem;">
+          <li>Context windows overflow mid-task — work is lost</li>
+          <li>No structured lifecycle — issues drift without state tracking</li>
+          <li>Manual prompting per phase: plan, build, test, verify</li>
+          <li>No visibility into what the agent is actually doing</li>
+          <li>No automated quality gate — you review everything yourself</li>
+        </ul>
+        <p style="margin-top: 1.5rem; color: var(--dim);">
+          barf treats AI work like a managed pipeline — with state machines,
+          overflow recovery, verification loops, and real-time observability.
+        </p>
+      </div>
+      <div class="screenshot-glow">
+        <img src="assets/barf_preview.png" alt="barf dashboard overview" class="screenshot">
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════ SLIDE 3 — The Ralph Wiggum Loop ════════ -->
+  <div class="slide" data-slide="2">
+    <div class="split">
+      <div>
+        <div class="label">The Inspiration</div>
+        <h2>The <em>Ralph</em> pattern</h2>
+
+        <p style="color: var(--dim); margin-top: 0.6rem;">
+          Geoffrey Huntley's <strong style="color: var(--fg);">Ralph</strong> is a beautifully simple idea: a bash loop that feeds a prompt to Claude, completes one task, commits, and restarts with fresh context.
+        </p>
+
+        <div style="margin: 1rem 0; padding: 0.8em 1.2em; border: 1px solid #565f8930; border-radius: 6px; background: var(--bg-highlight); font-family: var(--mono); font-size: clamp(0.84rem, 1.2vw, 1rem); color: var(--green); line-height: 1.7;">
+          while true; do<br>
+          &nbsp;&nbsp;claude --prompt PROMPT.md<br>
+          &nbsp;&nbsp;# reads IMPLEMENTATION_PLAN.md<br>
+          &nbsp;&nbsp;# does one task, commits, exits<br>
+          done
+        </div>
+
+        <p style="color: var(--dim); margin-top: 0.6rem;">
+          Each iteration = <strong style="color: var(--fg);">one fresh context</strong> = one task = one commit. The <code>IMPLEMENTATION_PLAN.md</code> file acts as shared state between isolated executions — keeping the agent in the "smart zone" of its context window.
+        </p>
+
+        <div style="display: flex; align-items: center; gap: 1rem; margin-top: 1rem;">
+          <img src="assets/Ralph_Wiggum.png" alt="Ralph Wiggum" style="height: 6rem; border-radius: 8px; flex-shrink: 0;">
+          <p style="color: var(--dim); font-style: italic; font-size: clamp(0.9rem, 1.2vw, 1.05rem);">
+            "I'm helping!" — Ralph runs in a loop, doing one thing at a time, never getting overwhelmed.
+          </p>
+        </div>
+      </div>
+      <div>
+        <h3 style="color: var(--green); margin-bottom: 0.8rem;">barf builds on Ralph</h3>
+        <p style="color: var(--dim); margin-bottom: 0.8rem; font-size: clamp(0.9rem, 1.2vw, 1.05rem);">
+          barf takes Ralph's core insight — fresh context per task — and adds structured orchestration on top:
+        </p>
+        <div style="display: flex; flex-direction: column; gap: 0.6rem;">
+          <div class="arch-layer" style="--accent: var(--green);">
+            <div class="layer-name">State machine, not a text file</div>
+            <div class="layer-desc">Instead of a flat plan file, barf tracks each issue through typed states with validated transitions. No ambiguity about what's done.</div>
+          </div>
+          <div class="arch-layer" style="--accent: var(--green);">
+            <div class="layer-name">Scoped phase prompts</div>
+            <div class="layer-desc">Ralph uses one prompt for everything. barf gives each phase (triage, plan, build) its own tailored prompt with only the context it needs.</div>
+          </div>
+          <div class="arch-layer" style="--accent: var(--green);">
+            <div class="layer-name">Overflow → auto-split</div>
+            <div class="layer-desc">Ralph relies on tasks being pre-scoped small enough. barf monitors tokens in real-time and auto-splits issues that outgrow their context window.</div>
+          </div>
+          <div class="arch-layer" style="--accent: var(--green);">
+            <div class="layer-name">Backpressure + self-healing</div>
+            <div class="layer-desc">Like Ralph's test/lint gates, but barf goes further — verification failures auto-create fix sub-issues and retry without human intervention.</div>
+          </div>
+          <div class="arch-layer" style="--accent: var(--green);">
+            <div class="layer-name">Cross-model audit</div>
+            <div class="layer-desc">Ralph is Claude-only. barf sends completed work to GPT-4o, Gemini, or Codex for an independent second opinion.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════ SLIDE 4 — The Pipeline ════════ -->
+  <div class="slide" data-slide="3">
+    <div class="split-img">
+      <div>
+        <div class="label">How It Works</div>
+        <h2>The autonomous<br><em>pipeline</em></h2>
+
+        <p style="color: var(--dim); margin-top: 0.5rem;">
+          Click <strong style="color: var(--fg);">Auto</strong> and barf drives every open issue through five stages. All output streams in real-time via SSE.
+        </p>
+      </div>
+      <div class="pipeline">
+        <div class="pipe-step" style="--step-color: var(--stage-triage);">
+          <div class="pipe-num">01</div>
+          <div class="pipe-detail">
+            <div class="pipe-name">Triage</div>
+            <div class="pipe-desc">Claude evaluates if requirements are clear. If not, generates interview questions for you to answer interactively.</div>
+          </div>
+        </div>
+        <div class="pipe-step" style="--step-color: var(--stage-plan);">
+          <div class="pipe-num">02</div>
+          <div class="pipe-detail">
+            <div class="pipe-name">Plan</div>
+            <div class="pipe-desc">Claude Agent SDK explores the codebase and writes a step-by-step implementation plan to a markdown file.</div>
+          </div>
+        </div>
+        <div class="pipe-step" style="--step-color: var(--stage-build);">
+          <div class="pipe-num">03</div>
+          <div class="pipe-detail">
+            <div class="pipe-name">Build</div>
+            <div class="pipe-desc">Claude implements the plan — writing code, running tests, checking off acceptance criteria one by one.</div>
+          </div>
+        </div>
+        <div class="pipe-step" style="--step-color: var(--stage-verify);">
+          <div class="pipe-num">04</div>
+          <div class="pipe-detail">
+            <div class="pipe-name">Verify</div>
+            <div class="pipe-desc">Automated checks: <code>build</code>, <code>lint</code>, <code>test</code>. Failures create fix sub-issues and retry automatically.</div>
+          </div>
+        </div>
+        <div class="pipe-step" style="--step-color: var(--stage-audit);">
+          <div class="pipe-num">05</div>
+          <div class="pipe-detail">
+            <div class="pipe-name">Audit</div>
+            <div class="pipe-desc">An independent AI (GPT-4o, Gemini, or Codex) reviews Claude's code for a second opinion on quality.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════ SLIDE 5 — State Machine ════════ -->
+  <div class="slide" data-slide="4">
+    <div class="split-img">
+      <div>
+        <div class="label">Issue Lifecycle</div>
+        <h2>A state machine drives <em>everything</em></h2>
+
+        <p style="color: var(--dim); margin-bottom: 0.8rem; font-size: clamp(0.85rem, 1.3vw, 1.05rem);">
+          Every issue is a markdown file with frontmatter tracking its state. Transitions are validated — no skipping steps, no invalid moves.
+        </p>
+
+        <div class="state-flow">
+          <span class="state-chip" style="border-color: var(--state-new); color: var(--state-new);">NEW</span>
+          <span class="state-arrow">→</span>
+          <span class="state-chip" style="border-color: var(--state-groomed); color: var(--state-groomed);">GROOMED</span>
+          <span class="state-arrow">→</span>
+          <span class="state-chip" style="border-color: var(--state-planned); color: var(--state-planned);">PLANNED</span>
+          <span class="state-arrow">→</span>
+          <span class="state-chip" style="border-color: var(--state-built); color: var(--state-built);">BUILT</span>
+          <span class="state-arrow">→</span>
+          <span class="state-chip" style="border-color: var(--state-complete); color: var(--state-complete);">COMPLETE</span>
+        </div>
+
+        <ul>
+          <li><strong style="color: var(--state-new);">NEW</strong> — created, awaiting triage evaluation</li>
+          <li><strong style="color: var(--state-groomed);">GROOMED</strong> — requirements clear, ready for planning</li>
+          <li><strong style="color: var(--state-planned);">PLANNED</strong> — plan written, stays here during build</li>
+          <li><strong style="color: var(--state-built);">BUILT</strong> — agent finished, awaiting verification</li>
+          <li><strong style="color: var(--state-complete);">COMPLETE</strong> — build + lint + tests all pass</li>
+        </ul>
+
+        <div class="state-flow" style="margin-top: 0.6rem;">
+          <span class="state-chip" style="border-color: var(--state-stuck); color: var(--state-stuck);">STUCK</span>
+          <span style="color: var(--dim); font-size: 0.96rem; margin: 0 0.4rem;">needs human help</span>
+          <span class="state-chip" style="border-color: var(--state-split); color: var(--state-split);">SPLIT</span>
+          <span style="color: var(--dim); font-size: 0.96rem; margin: 0 0.4rem;">decomposed into children</span>
+        </div>
+      </div>
+      <div class="screenshot-glow">
+        <img src="assets/screenshots/Screenshot From 2026-03-03 14-22-49.png" alt="Issue detail with state progress" class="screenshot">
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════ SLIDE 6 — Context Overflow ════════ -->
+  <div class="slide" data-slide="5">
+    <div class="label">Smart Recovery</div>
+    <h2>Context overflow? <em>Auto-split.</em></h2>
+
+    <p style="color: var(--dim); margin-bottom: 1rem;">
+      barf monitors token usage in real-time. When Claude approaches the context limit, barf doesn't just fail — it recovers automatically:
+    </p>
+
+    <div class="overflow-flow">
+      <div class="overflow-box">
+        <h4>1. Detect</h4>
+        <p>Stream consumer counts input tokens from main-context messages only (sub-agent tokens excluded). Threshold is configurable per-issue via <code>context_usage_percent</code>.</p>
+      </div>
+      <div class="overflow-box">
+        <h4>2. Interrupt</h4>
+        <p>When tokens exceed the threshold, barf calls <code>q.interrupt()</code> on the SDK query and throws <code>ContextOverflowError</code>.</p>
+      </div>
+      <div class="overflow-box highlight">
+        <h4>3a. Split</h4>
+        <p>If splits available: runs a split prompt, Claude decomposes the issue into smaller child issues, then plans each child automatically.</p>
+      </div>
+      <div class="overflow-box">
+        <h4>3b. Escalate</h4>
+        <p>If <code>MAX_AUTO_SPLITS</code> exhausted: switches to <code>EXTENDED_CONTEXT_MODEL</code> (a larger model) and continues with more headroom.</p>
+      </div>
+    </div>
+
+    <p style="color: var(--dim); margin-top: 0.5rem;">
+      This mirrors how a human developer handles scope creep: "This is too big — let me break it down into smaller tasks."
+    </p>
+  </div>
+
+  <!-- ════════ SLIDE 7 — Verification & Audit ════════ -->
+  <div class="slide" data-slide="6">
+    <div class="split-img">
+      <div>
+        <div class="label">Quality Gates</div>
+        <h2>Verify with code,<br><em>audit</em> with AI</h2>
+
+        <h3 style="margin-top: 1rem;">Verification loop</h3>
+        <p style="color: var(--dim); margin-bottom: 0.8rem;">
+          When Claude marks an issue <code>BUILT</code>, barf automatically runs:
+        </p>
+        <ul>
+          <li><code>bun run build</code> — does it compile?</li>
+          <li><code>bun run check</code> — lint + format pass?</li>
+          <li><code>bun test</code> — all tests green?</li>
+        </ul>
+        <p style="color: var(--dim); margin-top: 0.6rem;">
+          If any fail, barf creates a <strong>fix sub-issue</strong> with the error output and launches another agent to fix it. Retries up to N times.
+        </p>
+
+        <h3 style="margin-top: 1.2rem;">Cross-provider audit</h3>
+        <p style="color: var(--dim);">
+          After COMPLETE, a <em>different</em> AI reviews Claude's code — catching blind spots that the builder might miss.
+        </p>
+      </div>
+      <div>
+        <div class="provider-grid" style="grid-template-columns: repeat(2, 1fr);">
+          <div class="provider-card">
+            <span class="provider-icon">🤖</span>
+            <div class="provider-name">OpenAI</div>
+            <div class="provider-model">gpt-4o</div>
+          </div>
+          <div class="provider-card">
+            <span class="provider-icon">💎</span>
+            <div class="provider-name">Gemini</div>
+            <div class="provider-model">gemini-1.5-pro</div>
+          </div>
+          <div class="provider-card">
+            <span class="provider-icon">🧠</span>
+            <div class="provider-name">Claude</div>
+            <div class="provider-model">claude-sonnet-4-6</div>
+          </div>
+          <div class="provider-card">
+            <span class="provider-icon">⚡</span>
+            <div class="provider-name">Codex</div>
+            <div class="provider-model">codex CLI</div>
+          </div>
+        </div>
+        <p style="color: var(--dim); margin-top: 1rem; font-size: clamp(0.75rem, 1.1vw, 0.9rem); text-align: center;">
+          Selected via <code>AUDIT_PROVIDER</code> in <code>.barfrc</code>.<br>
+          Each extends a pluggable <code>AuditProvider</code> base class.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════ SLIDE 8 — Auto vs Manual ════════ -->
+  <div class="slide" data-slide="7">
+    <div class="split">
+      <div>
+        <div class="label">Two Modes</div>
+        <h2><em>Auto</em> or <em>manual</em> — your call</h2>
+
+        <h3 style="margin-top: 1.2rem; color: var(--green);">Auto mode</h3>
+        <p style="color: var(--dim); margin-bottom: 0.8rem;">
+          Click <strong style="color: var(--fg);">Auto</strong> and walk away. barf drives every open issue through the full pipeline — triage, plan, build, verify, audit — without intervention.
+        </p>
+        <ul>
+          <li>Picks up the next actionable issue automatically</li>
+          <li>Handles overflow, splits, and retries on its own</li>
+          <li>Ideal for batch processing a backlog overnight</li>
+        </ul>
+      </div>
+      <div>
+        <h3 style="color: var(--cyan); margin-bottom: 0.8rem;">Manual mode</h3>
+        <p style="color: var(--dim); margin-bottom: 0.8rem;">
+          Run one stage at a time. Inspect, edit, and retry at each step — full human-in-the-loop control.
+        </p>
+
+        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+          <div class="arch-layer" style="--accent: var(--stage-triage);">
+            <div class="layer-name">Triage</div>
+            <div class="layer-desc">Run triage, review the interview questions, answer them, re-triage if needed</div>
+          </div>
+          <div class="arch-layer" style="--accent: var(--stage-plan);">
+            <div class="layer-name">Plan</div>
+            <div class="layer-desc">Generate a plan, read it, edit the markdown, re-plan until you're satisfied</div>
+          </div>
+          <div class="arch-layer" style="--accent: var(--stage-build);">
+            <div class="layer-name">Build</div>
+            <div class="layer-desc">Let Claude implement. Review the diff, tweak the issue body or plan, and rebuild</div>
+          </div>
+          <div class="arch-layer" style="--accent: var(--stage-verify);">
+            <div class="layer-name">Verify</div>
+            <div class="layer-desc">Run checks. If something fails, edit the code or issue and re-verify</div>
+          </div>
+          <div class="arch-layer" style="--accent: var(--stage-audit);">
+            <div class="layer-name">Audit</div>
+            <div class="layer-desc">Get a cross-model review. Address feedback and re-audit if needed</div>
+          </div>
+        </div>
+
+        <p style="color: var(--dim); margin-top: 0.8rem; font-size: clamp(0.84rem, 1.1vw, 0.96rem);">
+          Each button on the dashboard maps to one stage — run them in any order, retry as many times as you want.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════ SLIDE 9 — Dashboard ════════ -->
+  <div class="slide" data-slide="8">
+    <div class="split-img" style="grid-template-columns: 1fr 1.1fr;">
+      <div>
+        <div class="label">The Dashboard</div>
+        <h2>Real-time <em>observability</em></h2>
+
+        <ul style="margin-top: 1rem;">
+          <li><strong>Kanban board</strong> — drag issues between states, see the full pipeline at a glance</li>
+          <li><strong>Activity log</strong> — every Claude message streamed live via SSE with token counts</li>
+          <li><strong>Issue detail</strong> — acceptance criteria, interview Q&A, state progress bar, stage log</li>
+          <li><strong>Stats panel</strong> — session history, token usage charts, duration tracking</li>
+          <li><strong>Prompt editor</strong> — live-edit prompt templates without restarting</li>
+          <li><strong>Config panel</strong> — model selection, audit gate, thresholds</li>
+        </ul>
+      </div>
+      <div class="screenshot-glow" style="align-self: center;">
+        <img src="assets/screenshots/Screenshot From 2026-03-03 14-19-06.png" alt="Dashboard stats and activity" class="screenshot">
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════ SLIDE 10 — Getting Started ════════ -->
+  <div class="slide" data-slide="9">
+    <div class="split-img">
+      <div>
+        <div class="label">Get Started</div>
+        <h2>Three steps to<br><em>autonomous</em> dev</h2>
+
+        <ul style="margin-top: 1.2rem;">
+          <li><code>barf /path/to/project</code> — starts the dashboard on :3333</li>
+          <li>Create issues as markdown files with acceptance criteria</li>
+          <li>Click <strong>Auto</strong> — barf triages, plans, builds, verifies, and audits</li>
+        </ul>
+
+        <p style="margin-top: 1.5rem; color: var(--dim);">
+          Issues are git-trackable markdown. No database. No migrations.
+          Works with local files or GitHub Issues. Configure via <code>.barfrc</code>.
+        </p>
+
+        <p style="margin-top: 1.5rem; color: var(--dim);">
+          Built with Bun, TypeScript strict mode, Zod schemas,
+          and 913 tests across 68 files.
+        </p>
+
+        <p style="margin-top: 2rem; font-family: var(--serif); font-size: clamp(1.4rem, 3vw, 2.2rem); color: var(--purple);">
+          Let AI agents ship — you steer.
+        </p>
+      </div>
+      <div style="display: flex; justify-content: center;">
+        <img src="assets/barf.png" alt="barf mascot" class="mascot">
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Progress + nav -->
+<div class="progress" id="progress"></div>
+<div class="slide-num" id="slideNum">1 / 10</div>
+<div class="nav-hint">← → or click to navigate</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+  let current = 0;
+
+  function goTo(n) {
+    if (n < 0 || n >= total) return;
+    slides[current].classList.remove('active');
+    current = n;
+    slides[current].classList.add('active');
+    document.getElementById('progress').style.width = `${(current + 1) / total * 100}%`;
+    document.getElementById('slideNum').textContent = `${current + 1} / ${total}`;
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); goTo(current + 1); }
+    if (e.key === 'ArrowLeft') goTo(current - 1);
+    if (e.key === 'Home') goTo(0);
+    if (e.key === 'End') goTo(total - 1);
+  });
+
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('a, button, .feature-card, .provider-card')) return;
+    e.clientX > window.innerWidth / 2 ? goTo(current + 1) : goTo(current - 1);
+  });
+
+  let touchStartX = 0;
+  document.addEventListener('touchstart', (e) => { touchStartX = e.touches[0].clientX; });
+  document.addEventListener('touchend', (e) => {
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(dx) > 50) dx < 0 ? goTo(current + 1) : goTo(current - 1);
+  });
+
+  goTo(0);
+</script>
+
+</body>
+</html>
