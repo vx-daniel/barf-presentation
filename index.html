@@ -551,6 +551,7 @@
         <div class="label">The Inspiration</div>
         <h2>The <em>Ralph</em> pattern</h2>
 
+
         <p style="color: var(--dim); margin-top: 0.6rem;">
           Geoffrey Huntley's <strong style="color: var(--fg);">Ralph</strong> is a beautifully simple idea: a bash loop that feeds a prompt to Claude, completes one task, commits, and restarts with fresh context.
         </p>
@@ -563,16 +564,19 @@
           done
         </div>
 
+
+        <div style="display: flex; align-items: center; gap: 1rem; margin-top: 1rem;">
+          <img src="assets/Ralph_Wiggum.png" alt="Ralph Wiggum" style="height: 6rem; border-radius: 8px; shrink: 0;">
+          <p style="color: var(--dim); font-style: italic; font-size: clamp(1.2rem, 1.2vw, 1.05rem);">
+            "I'm helping!" 
+            <!-- — Ralph runs in a loop, doing one thing at a time, never getting overwhelmed. -->
+          </p>
+        </div>
+        
         <p style="color: var(--dim); margin-top: 0.6rem;">
           Each iteration = <strong style="color: var(--fg);">one fresh context</strong> = one task = one commit. The <code>IMPLEMENTATION_PLAN.md</code> file acts as shared state between isolated executions — keeping the agent in the "smart zone" of its context window.
         </p>
 
-        <div style="display: flex; align-items: center; gap: 1rem; margin-top: 1rem;">
-          <img src="assets/Ralph_Wiggum.png" alt="Ralph Wiggum" style="height: 6rem; border-radius: 8px; shrink: 0;">
-          <p style="color: var(--dim); font-style: italic; font-size: clamp(0.9rem, 1.2vw, 1.05rem);">
-            "I'm helping!" — Ralph runs in a loop, doing one thing at a time, never getting overwhelmed.
-          </p>
-        </div>
       </div>
       <div>
         <h3 style="color: var(--green); margin-bottom: 0.8rem;">barf builds on Ralph</h3>
