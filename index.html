@@ -505,6 +505,7 @@
 <div class="deck">
 
   <!-- ════════ SLIDE 1 — Title ════════ -->
+
   <div class="slide active" data-slide="0">
     <div class="split-img">
       <div>
@@ -530,22 +531,46 @@
         <div class="label">The Problem</div>
         <h2>AI agents are powerful.<br><em>Managing</em> them is hard.</h2>
         <ul style="margin-top: 1.2rem;">
-          <li>Context windows overflow mid-task — work is lost</li>
-          <li>No structured lifecycle — issues drift without state tracking</li>
-          <li>Manual prompting per phase: plan, build, test, verify</li>
-          <li>No visibility into what the agent is actually doing</li>
-          <li>No automated quality gate — you review everything yourself</li>
+          <li>Agent hits the context limit 80% through a task — <strong>all progress lost</strong>, start over from scratch</li>
+          <li>You babysit every session — paste the plan, paste the context, re-explain what's already done</li>
+          <li>No memory between runs — each invocation is a blank slate that doesn't know what happened before</li>
+          <li>Agent says "done" but the build is broken — you catch it manually, 20 minutes later</li>
+          <li>One model, one perspective — no second opinion on whether the code is actually good</li>
+          <li>No dashboard, no logs — you watch terminal output scroll by and hope for the best</li>
         </ul>
         <p style="margin-top: 1.5rem; color: var(--dim);">
           barf treats AI work like a managed pipeline — with state machines,
           overflow recovery, verification loops, and real-time observability.
         </p>
       </div>
-    <!-- </div> -->
   </div>
 
-  <!-- ════════ SLIDE 3 — The Ralph Wiggum Loop ════════ -->
+
+  <!-- ════════ SLIDE 3 — Dashboard ════════ -->
   <div class="slide" data-slide="2">
+    <div class="split-img" style="grid-template-columns: 1fr 1.1fr;">
+      <div>
+        <div class="label">The Dashboard</div>
+        <h2>Real-time <em>observability</em></h2>
+
+        <ul style="margin-top: 1rem;">
+          <li><strong>Kanban board</strong> — drag issues between states, see the full pipeline at a glance</li>
+          <li><strong>Activity log</strong> — every Claude message streamed live via SSE with token counts</li>
+          <li><strong>Issue detail</strong> — acceptance criteria, interview Q&A, state progress bar, stage log</li>
+          <li><strong>Stats panel</strong> — session history, token usage charts, duration tracking</li>
+          <li><strong>Prompt editor</strong> — live-edit prompt templates without restarting</li>
+          <li><strong>Config panel</strong> — model selection, audit gate, thresholds</li>
+        </ul>
+      </div>
+      <div class="screenshot-glow" style="align-self: center;">
+        <img src="assets/screenshots/Screenshot From 2026-03-03 14-19-06.png" alt="Dashboard stats and activity" class="screenshot">
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ════════ SLIDE 4 — The Ralph Pattern ════════ -->
+  <div class="slide" data-slide="3">
     <div class="split">
       <div>
         <div class="label">The Inspiration</div>
@@ -609,8 +634,9 @@
     </div>
   </div>
 
-  <!-- ════════ SLIDE 4 — The Pipeline ════════ -->
-  <div class="slide" data-slide="3">
+
+  <!-- ════════ SLIDE 5 — The Pipeline ════════ -->
+  <div class="slide" data-slide="4">
     <div class="split-img">
       <div>
         <div class="label">How It Works</div>
@@ -660,8 +686,9 @@
     </div>
   </div>
 
-  <!-- ════════ SLIDE 5 — State Machine ════════ -->
-  <div class="slide" data-slide="4">
+
+  <!-- ════════ SLIDE 6 — State Machine ════════ -->
+  <div class="slide" data-slide="5">
     <div class="split-img">
       <div>
         <div class="label">Issue Lifecycle</div>
@@ -670,7 +697,7 @@
         <p style="color: var(--dim); margin-bottom: 0.8rem; font-size: clamp(0.85rem, 1.3vw, 1.05rem);">
           Every issue is a markdown file with frontmatter tracking its state. Transitions are validated — no skipping steps, no invalid moves.
         </p>
-
+<!-- 
         <div class="state-flow">
           <span class="state-chip" style="border-color: var(--state-new); color: var(--state-new);">NEW</span>
           <span class="state-arrow">→</span>
@@ -681,7 +708,7 @@
           <span class="state-chip" style="border-color: var(--state-built); color: var(--state-built);">BUILT</span>
           <span class="state-arrow">→</span>
           <span class="state-chip" style="border-color: var(--state-complete); color: var(--state-complete);">COMPLETE</span>
-        </div>
+        </div> -->
 
         <ul>
           <li><strong style="color: var(--state-new);">NEW</strong> — created, awaiting triage evaluation</li>
@@ -689,23 +716,109 @@
           <li><strong style="color: var(--state-planned);">PLANNED</strong> — plan written, stays here during build</li>
           <li><strong style="color: var(--state-built);">BUILT</strong> — agent finished, awaiting verification</li>
           <li><strong style="color: var(--state-complete);">COMPLETE</strong> — build + lint + tests all pass</li>
+          <li><strong style="color: var(--state-stuck);">STUCK</strong> — needs human help</li>
+          <li><strong style="color: var(--state-split);">SPLIT</strong> — decomposed into children</li>
         </ul>
 
-        <div class="state-flow" style="margin-top: 0.6rem;">
+        <!-- <div class="state-flow" style="margin-top: 0.6rem;">
           <span class="state-chip" style="border-color: var(--state-stuck); color: var(--state-stuck);">STUCK</span>
           <span style="color: var(--dim); font-size: 0.96rem; margin: 0 0.4rem;">needs human help</span>
           <span class="state-chip" style="border-color: var(--state-split); color: var(--state-split);">SPLIT</span>
           <span style="color: var(--dim); font-size: 0.96rem; margin: 0 0.4rem;">decomposed into children</span>
-        </div>
+        </div> -->
       </div>
-      <div class="screenshot-glow">
-        <img src="assets/screenshots/Screenshot From 2026-03-03 14-22-49.png" alt="Issue detail with state progress" class="screenshot">
+      <div style="display: flex; align-items: center; justify-content: center;">
+        <svg viewBox="0 0 420 520" xmlns="http://www.w3.org/2000/svg" style="width: 100%; max-height: 68vh;">
+          <defs>
+            <marker id="ah" markerWidth="9" markerHeight="6" refX="9" refY="3" orient="auto">
+              <path d="M0,0 L9,3 L0,6" fill="none" stroke="#787ea0" stroke-width="1.3"/>
+            </marker>
+            <marker id="ah-red" markerWidth="9" markerHeight="6" refX="9" refY="3" orient="auto">
+              <path d="M0,0 L9,3 L0,6" fill="none" stroke="#f7768e" stroke-width="1.3"/>
+            </marker>
+            <marker id="ah-green" markerWidth="9" markerHeight="6" refX="9" refY="3" orient="auto">
+              <path d="M0,0 L9,3 L0,6" fill="none" stroke="#9ece6a" stroke-width="1.3"/>
+            </marker>
+            <marker id="ah-purple" markerWidth="9" markerHeight="6" refX="9" refY="3" orient="auto">
+              <path d="M0,0 L9,3 L0,6" fill="none" stroke="#c678dd" stroke-width="1.3"/>
+            </marker>
+          </defs>
+
+          <!-- ═══ Happy path (vertical center column) ═══ -->
+          <!-- Center x=210, nodes 86px apart -->
+
+          <!-- NEW -->
+          <rect x="148" y="30" width="124" height="40" rx="6" fill="#24283b" stroke="#565f89" stroke-width="1.8"/>
+          <text x="210" y="56" text-anchor="middle" fill="#565f89" font-family="'Space Mono', monospace" font-size="14" font-weight="700">NEW</text>
+          <line x1="210" y1="70" x2="210" y2="106" stroke="#787ea0" stroke-width="2" marker-end="url(#ah)"/>
+
+          <!-- GROOMED -->
+          <rect x="148" y="116" width="124" height="40" rx="6" fill="#24283b" stroke="#7aa2f7" stroke-width="1.8"/>
+          <text x="210" y="142" text-anchor="middle" fill="#7aa2f7" font-family="'Space Mono', monospace" font-size="14" font-weight="700">GROOMED</text>
+          <line x1="210" y1="156" x2="210" y2="192" stroke="#787ea0" stroke-width="2" marker-end="url(#ah)"/>
+
+          <!-- PLANNED -->
+          <rect x="148" y="202" width="124" height="40" rx="6" fill="#24283b" stroke="#bb9af7" stroke-width="1.8"/>
+          <text x="210" y="228" text-anchor="middle" fill="#bb9af7" font-family="'Space Mono', monospace" font-size="14" font-weight="700">PLANNED</text>
+          <line x1="210" y1="242" x2="210" y2="278" stroke="#787ea0" stroke-width="2" marker-end="url(#ah)"/>
+
+          <!-- BUILT -->
+          <rect x="148" y="288" width="124" height="40" rx="6" fill="#24283b" stroke="#9ece6a" stroke-width="1.8"/>
+          <text x="210" y="314" text-anchor="middle" fill="#9ece6a" font-family="'Space Mono', monospace" font-size="14" font-weight="700">BUILT</text>
+          <line x1="210" y1="328" x2="210" y2="364" stroke="#787ea0" stroke-width="2" marker-end="url(#ah)"/>
+
+          <!-- COMPLETE -->
+          <rect x="148" y="374" width="124" height="40" rx="6" fill="#24283b" stroke="#73daca" stroke-width="1.8"/>
+          <text x="210" y="400" text-anchor="middle" fill="#73daca" font-family="'Space Mono', monospace" font-size="14" font-weight="700">COMPLETE</text>
+          <text x="210" y="428" text-anchor="middle" fill="#565f89" font-family="'Space Mono', monospace" font-size="9" letter-spacing="0.12em">TERMINAL</text>
+
+          <!-- ═══ STUCK (left) ═══ -->
+          <rect x="8" y="180" width="96" height="40" rx="6" fill="#24283b" stroke="#f7768e" stroke-width="1.8"/>
+          <text x="56" y="206" text-anchor="middle" fill="#f7768e" font-family="'Space Mono', monospace" font-size="13" font-weight="700">STUCK</text>
+
+          <!-- To STUCK (red dashed) — single consolidated path from the zone -->
+          <path d="M148,50 L108,50 Q78,50 78,80 L78,180" stroke="#f7768e" stroke-width="1.2" stroke-dasharray="5,3" fill="none" marker-end="url(#ah-red)" opacity="0.6"/>
+          <path d="M148,136 L48,136 Q34,136 34,155 L34,180" stroke="#f7768e" stroke-width="1.2" stroke-dasharray="5,3" fill="none" marker-end="url(#ah-red)" opacity="0.6"/>
+          <path d="M148,222 L104,222" stroke="#f7768e" stroke-width="1.2" stroke-dasharray="5,3" fill="none" marker-end="url(#ah-red)" opacity="0.6"/>
+
+          <!-- From STUCK back (green) — recovery arrows -->
+          <path d="M68,180 Q68,110 148,56" stroke="#9ece6a" stroke-width="1.2" fill="none" marker-end="url(#ah-green)" opacity="0.5"/>
+          <path d="M48,180 Q48,160 90,148 L148,142" stroke="#9ece6a" stroke-width="1.2" fill="none" marker-end="url(#ah-green)" opacity="0.5"/>
+          <path d="M88,220 Q120,235 148,232" stroke="#9ece6a" stroke-width="1.2" fill="none" marker-end="url(#ah-green)" opacity="0.5"/>
+
+          <!-- STUCK labels -->
+          <text x="10" y="110" fill="#f7768e" font-family="'Space Mono', monospace" font-size="9" opacity="0.7">needs help</text>
+          <text x="10" y="260" fill="#9ece6a" font-family="'Space Mono', monospace" font-size="9" opacity="0.6">recovers</text>
+
+          <!-- ═══ SPLIT (right) ═══ -->
+          <rect x="316" y="180" width="96" height="40" rx="6" fill="#24283b" stroke="#c678dd" stroke-width="1.8"/>
+          <text x="364" y="206" text-anchor="middle" fill="#c678dd" font-family="'Space Mono', monospace" font-size="13" font-weight="700">SPLIT</text>
+          <text x="364" y="234" text-anchor="middle" fill="#565f89" font-family="'Space Mono', monospace" font-size="9" letter-spacing="0.12em">TERMINAL</text>
+
+          <!-- To SPLIT (purple dashed) -->
+          <path d="M272,50 L332,50 Q342,50 342,80 L342,180" stroke="#c678dd" stroke-width="1.2" stroke-dasharray="5,3" fill="none" marker-end="url(#ah-purple)" opacity="0.55"/>
+          <path d="M272,136 L378,136 Q392,136 392,155 L392,180" stroke="#c678dd" stroke-width="1.2" stroke-dasharray="5,3" fill="none" marker-end="url(#ah-purple)" opacity="0.55"/>
+          <path d="M272,222 L316,222" stroke="#c678dd" stroke-width="1.2" stroke-dasharray="5,3" fill="none" marker-end="url(#ah-purple)" opacity="0.55"/>
+
+          <!-- STUCK → SPLIT (below happy path) -->
+          <path d="M104,210 Q210,260 316,210" stroke="#c678dd" stroke-width="1" stroke-dasharray="4,3" fill="none" marker-end="url(#ah-purple)" opacity="0.35"/>
+
+          <!-- SPLIT label -->
+          <text x="396" y="110" fill="#c678dd" font-family="'Space Mono', monospace" font-size="9" opacity="0.6">decom-</text>
+          <text x="396" y="122" fill="#c678dd" font-family="'Space Mono', monospace" font-size="9" opacity="0.6">poses</text>
+
+          <!-- Happy path label -->
+          <text x="210" y="20" text-anchor="middle" fill="#787ea0" font-family="'Space Mono', monospace" font-size="9" letter-spacing="0.15em" opacity="0.45">HAPPY PATH ↓</text>
+
+          <!-- Subtle zone background for happy path -->
+          <rect x="142" y="24" width="136" height="396" rx="10" fill="none" stroke="#787ea0" stroke-width="0.5" stroke-dasharray="3,6" opacity="0.2"/>
+        </svg>
       </div>
     </div>
   </div>
 
-  <!-- ════════ SLIDE 6 — Context Overflow ════════ -->
-  <div class="slide" data-slide="5">
+  <!-- ════════ SLIDE 7 — Context Overflow ════════ -->
+  <div class="slide" data-slide="6">
     <div class="label">Smart Recovery</div>
     <h2>Context overflow? <em>Auto-split.</em></h2>
 
@@ -737,8 +850,8 @@
     </p>
   </div>
 
-  <!-- ════════ SLIDE 7 — Verification & Audit ════════ -->
-  <div class="slide" data-slide="6">
+  <!-- ════════ SLIDE 8 — Verification & Audit ════════ -->
+  <div class="slide" data-slide="7">
     <div class="split-img">
       <div>
         <div class="label">Quality Gates</div>
@@ -788,72 +901,6 @@
         <p style="color: var(--dim); margin-top: 1rem; font-size: clamp(0.75rem, 1.1vw, 0.9rem); text-align: center;">
           Selected via <code>AUDIT_PROVIDER</code> in <code>.barfrc</code>.<br>
           Each extends a pluggable <code>AuditProvider</code> base class.
-        </p>
-      </div>
-    </div>
-  </div>
-
-  <!-- ════════ SLIDE 8 — Harness Engineering ════════ -->
-  <div class="slide" data-slide="7">
-    <div class="split">
-      <div>
-        <div class="label">Industry Validation</div>
-        <h2><em>Harness</em> engineering</h2>
-
-        <p style="color: var(--dim); margin-top: 0.6rem;">
-          In February 2026, OpenAI's Codex team coined <strong style="color: var(--fg);">harness engineering</strong> — the discipline of designing constraints, feedback loops, and environments that make AI agents reliable.
-        </p>
-
-        <p style="color: var(--dim); margin-top: 0.6rem;">
-          The metaphor: the model is the <strong style="color: var(--fg);">horse</strong> (powerful but directionless), the harness provides <strong style="color: var(--fg);">structure</strong>, and the human is the <strong style="color: var(--fg);">rider</strong>.
-        </p>
-
-        <h3 style="margin-top: 1rem;">Four principles</h3>
-        <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem;">
-          <div class="arch-layer" style="--accent: var(--cyan);">
-            <div class="layer-name">Constrain</div>
-            <div class="layer-desc">Architectural boundaries and dependency rules narrow the solution space</div>
-          </div>
-          <div class="arch-layer" style="--accent: var(--accent);">
-            <div class="layer-name">Inform</div>
-            <div class="layer-desc">Context engineering — the repo is the single source of truth for agents</div>
-          </div>
-          <div class="arch-layer" style="--accent: var(--green);">
-            <div class="layer-name">Verify</div>
-            <div class="layer-desc">Testing, linting, and CI validate every output</div>
-          </div>
-          <div class="arch-layer" style="--accent: var(--orange);">
-            <div class="layer-name">Correct</div>
-            <div class="layer-desc">Feedback loops and self-repair mechanisms fix what's broken</div>
-          </div>
-        </div>
-      </div>
-      <div>
-        <h3 style="color: var(--purple); margin-bottom: 0.8rem;">barf was doing this first</h3>
-        <p style="color: var(--dim); margin-bottom: 0.8rem; font-size: clamp(0.9rem, 1.2vw, 1.05rem);">
-          barf implemented every harness principle before the term existed:
-        </p>
-        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-          <div class="arch-layer" style="--accent: var(--cyan);">
-            <div class="layer-name">Constrain → State machine</div>
-            <div class="layer-desc">Validated transitions prevent invalid moves. Scoped phase prompts limit each stage to only what it needs. SDK isolation via <code>settingSources: []</code>.</div>
-          </div>
-          <div class="arch-layer" style="--accent: var(--accent);">
-            <div class="layer-name">Inform → Prompt templates</div>
-            <div class="layer-desc">Variable injection feeds issue context, acceptance criteria, and plan content into each prompt. The issue file is the single source of truth.</div>
-          </div>
-          <div class="arch-layer" style="--accent: var(--green);">
-            <div class="layer-name">Verify → Build + lint + test</div>
-            <div class="layer-desc">Automated verification checks every build. Cross-model audit catches blind spots the builder misses.</div>
-          </div>
-          <div class="arch-layer" style="--accent: var(--orange);">
-            <div class="layer-name">Correct → Self-healing loops</div>
-            <div class="layer-desc">Fix sub-issues auto-created on failure. Overflow triggers auto-split. Model escalation as final fallback.</div>
-          </div>
-        </div>
-        <p style="color: var(--dim); margin-top: 0.8rem; font-style: italic; font-size: clamp(0.84rem, 1.1vw, 0.96rem);">
-          "The model is commodity. The harness is moat."<br>
-          <span style="color: var(--dim);">— OpenAI Codex team, Feb 2026</span>
         </p>
       </div>
     </div>
@@ -912,24 +959,68 @@
     </div>
   </div>
 
-  <!-- ════════ SLIDE 10 — Dashboard ════════ -->
+  <!-- ════════ SLIDE 10 — Harness Engineering ════════ -->
   <div class="slide" data-slide="9">
-    <div class="split-img" style="grid-template-columns: 1fr 1.1fr;">
+    <div class="split">
       <div>
-        <div class="label">The Dashboard</div>
-        <h2>Real-time <em>observability</em></h2>
+        <div class="label">Industry Validation</div>
+        <h2><em>Harness</em> engineering</h2>
 
-        <ul style="margin-top: 1rem;">
-          <li><strong>Kanban board</strong> — drag issues between states, see the full pipeline at a glance</li>
-          <li><strong>Activity log</strong> — every Claude message streamed live via SSE with token counts</li>
-          <li><strong>Issue detail</strong> — acceptance criteria, interview Q&A, state progress bar, stage log</li>
-          <li><strong>Stats panel</strong> — session history, token usage charts, duration tracking</li>
-          <li><strong>Prompt editor</strong> — live-edit prompt templates without restarting</li>
-          <li><strong>Config panel</strong> — model selection, audit gate, thresholds</li>
-        </ul>
+        <p style="color: var(--dim); margin-top: 0.6rem;">
+          In February 2026, OpenAI's Codex team coined <strong style="color: var(--fg);">harness engineering</strong> — the discipline of designing constraints, feedback loops, and environments that make AI agents reliable.
+        </p>
+
+        <p style="color: var(--dim); margin-top: 0.6rem;">
+          The metaphor: the model is the <strong style="color: var(--fg);">horse</strong> (powerful but directionless), the harness provides <strong style="color: var(--fg);">structure</strong>, and the human is the <strong style="color: var(--fg);">rider</strong>.
+        </p>
+
+        <h3 style="margin-top: 1rem;">Four principles</h3>
+        <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem;">
+          <div class="arch-layer" style="--accent: var(--cyan);">
+            <div class="layer-name">Constrain</div>
+            <div class="layer-desc">Architectural boundaries and dependency rules narrow the solution space</div>
+          </div>
+          <div class="arch-layer" style="--accent: var(--purple);">
+            <div class="layer-name">Inform</div>
+            <div class="layer-desc">Context engineering — the repo is the single source of truth for agents</div>
+          </div>
+          <div class="arch-layer" style="--accent: var(--green);">
+            <div class="layer-name">Verify</div>
+            <div class="layer-desc">Testing, linting, and CI validate every output</div>
+          </div>
+          <div class="arch-layer" style="--accent: var(--orange);">
+            <div class="layer-name">Correct</div>
+            <div class="layer-desc">Feedback loops and self-repair mechanisms fix what's broken</div>
+          </div>
+        </div>
       </div>
-      <div class="screenshot-glow" style="align-self: center;">
-        <img src="assets/screenshots/Screenshot From 2026-03-03 14-19-06.png" alt="Dashboard stats and activity" class="screenshot">
+      <div>
+        <h3 style="color: var(--purple); margin-bottom: 0.8rem;">barf was doing this first</h3>
+        <p style="color: var(--dim); margin-bottom: 0.8rem; font-size: clamp(0.9rem, 1.2vw, 1.05rem);">
+          barf implemented every harness principle before the term existed:
+        </p>
+        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+          <div class="arch-layer" style="--accent: var(--cyan);">
+            <div class="layer-name">Constrain → State machine</div>
+            <div class="layer-desc">Validated transitions prevent invalid moves. Scoped phase prompts limit each stage to only what it needs. SDK isolation via <code>settingSources: []</code>.</div>
+          </div>
+          <div class="arch-layer" style="--accent: var(--purple);">
+            <div class="layer-name">Inform → Prompt templates</div>
+            <div class="layer-desc">Variable injection feeds issue context, acceptance criteria, and plan content into each prompt. The issue file is the single source of truth.</div>
+          </div>
+          <div class="arch-layer" style="--accent: var(--green);">
+            <div class="layer-name">Verify → Build + lint + test</div>
+            <div class="layer-desc">Automated verification checks every build. Cross-model audit catches blind spots the builder misses.</div>
+          </div>
+          <div class="arch-layer" style="--accent: var(--orange);">
+            <div class="layer-name">Correct → Self-healing loops</div>
+            <div class="layer-desc">Fix sub-issues auto-created on failure. Overflow triggers auto-split. Model escalation as final fallback.</div>
+          </div>
+        </div>
+        <p style="color: var(--dim); margin-top: 0.8rem; font-style: italic; font-size: clamp(0.84rem, 1.1vw, 0.96rem);">
+          "The model is commodity. The harness is moat."<br>
+          <span style="color: var(--dim);">— OpenAI Codex team, Feb 2026</span>
+        </p>
       </div>
     </div>
   </div>
@@ -939,22 +1030,23 @@
     <div class="split-img">
       <div>
         <div class="label">Get Started</div>
-        <h2>Three steps to<br><em>autonomous</em> dev</h2>
+        <h2>Get to<br><em>autonomous</em> dev</h2>
 
         <ul style="margin-top: 1.2rem;">
-          <li><code>barf /path/to/project</code> — starts the dashboard on :3333</li>
+          <li>Launch <code>barf</code> — opens the dashboard on :3333</li>
+          <li>Select your project — barf auto-detects <code>.barfrc</code> and issues</li>
           <li>Create issues as markdown files with acceptance criteria</li>
           <li>Click <strong>Auto</strong> — barf triages, plans, builds, verifies, and audits</li>
         </ul>
 
         <p style="margin-top: 1.5rem; color: var(--dim);">
           Issues are git-trackable markdown. No database. No migrations.
-          Works with local files or GitHub Issues. Configure via <code>.barfrc</code>.
+          Works with local files or GitHub Issues. Project selection built into the app.
         </p>
 
         <p style="margin-top: 1.5rem; color: var(--dim);">
           Built with Bun, TypeScript strict mode, Zod schemas,
-          and 913 tests across 68 files.
+          and 1,210 tests across 102 files.
         </p>
 
         <p style="margin-top: 2rem; font-family: var(--serif); font-size: clamp(1.4rem, 3vw, 2.2rem); color: var(--purple);">
@@ -966,7 +1058,6 @@
       </div>
     </div>
   </div>
-
 </div>
 
 <!-- Progress + nav -->
@@ -1011,4 +1102,3 @@
 </script>
 
 </body>
-</html>
